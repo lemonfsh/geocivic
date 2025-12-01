@@ -9,6 +9,7 @@ public class InterfaceManager : MonoBehaviour
     [SerializeField] private GameObject logInBox;
     public TextMeshProUGUI passwordBox;
     public TMP_InputField inputPassBox;
+    [SerializeField] private MapScript mapScript;
 
     private string normalPassword = "NormPass";
     private string adminPassword = "AdminPass";
@@ -19,6 +20,7 @@ public class InterfaceManager : MonoBehaviour
         {
             Debug.Log("Log in successful");
             logInBox.SetActive(false);
+            mapScript.mapActive = true;
         }
         else
         {
