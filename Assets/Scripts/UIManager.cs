@@ -36,6 +36,8 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI usernameText;
     public TextMeshProUGUI passwordText;
 
+    public TextMeshProUGUI xCoord;
+    public TextMeshProUGUI yCoord;
 
 
     public void OnAttemptLogIn()
@@ -116,6 +118,10 @@ public class FindIssue : UIstate
         if (Input.GetMouseButtonDown(0))
         {
             next_state = new CreateIssue(manager);
+            Vector3 mousePos = Input.mousePosition;
+
+            manager.xCoord.text = mousePos.x.ToString();
+            manager.yCoord.text = mousePos.y.ToString();
         }
     }
 }
