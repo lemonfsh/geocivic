@@ -207,8 +207,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1361563168}
-        m_TargetAssemblyTypeName: InterfaceManager, Assembly-CSharp
-        m_MethodName: AttemptLogIn
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: OnAttemptLogIn
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1842,7 +1842,7 @@ GameObject:
   - component: {fileID: 674095942}
   - component: {fileID: 674095941}
   m_Layer: 5
-  m_Name: Text
+  m_Name: PasswordText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3066,7 +3066,7 @@ GameObject:
   - component: {fileID: 1092235853}
   - component: {fileID: 1092235852}
   m_Layer: 5
-  m_Name: Text
+  m_Name: UsernameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3371,7 +3371,7 @@ GameObject:
   - component: {fileID: 1264981603}
   - component: {fileID: 1264981602}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: displayLogInStatus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3762,13 +3762,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1361563163}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24e6e7168ddb04a41affb7fe7100ead8, type: 3}
+  m_Script: {fileID: 11500000, guid: 4deb4292bf91c9d4da9c0f3eb318cd85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  logInBox: {fileID: 1074862339}
-  passwordBox: {fileID: 674095941}
-  inputPassBox: {fileID: 116063793}
-  mapScript: {fileID: 1091378331}
+  LogInScreen: {fileID: 1074862339}
+  CreatingIssueScreen: {fileID: 642482082}
+  Map: {fileID: 650310727}
+  displayLogInStatusText: {fileID: 1264981602}
+  usernameText: {fileID: 1092235852}
+  passwordText: {fileID: 674095941}
 --- !u!1 &1543436087
 GameObject:
   m_ObjectHideFlags: 0
