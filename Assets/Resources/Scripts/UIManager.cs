@@ -66,7 +66,10 @@ public class UIManager : MonoBehaviour
     {
         state.OnAttemptLogIn();
     }
-
+    public void OnAttemptSignUp()
+    {
+        state.OnAttemptSignUp();
+    }
     public void OnCancelCreateIssue()
     {
         state.OnCancelCreateIssue();
@@ -121,12 +124,15 @@ public class UIManager : MonoBehaviour
 
     public Dictionary<string, string> users = new Dictionary<string, string>()
     {
-        ["User"] = "Password",
+        ["Guest"] = "Password",
     };
 
     public Dictionary<string, string> ADMINusers = new Dictionary<string, string>()
     {
-        ["User1"] = "Password1",
+        ["Samuel"] = "Fish1",
+        ["Brandon"] = "Bour2",
+        ["Owen"] = "Scho3",
+        ["Victor"] = "Figu4",
     };
 }
 
@@ -142,6 +148,7 @@ public abstract class UIstate
     }
 
     public virtual void OnAttemptLogIn() { }
+    public virtual void OnAttemptSignUp() { }
     public virtual void OnCancelCreateIssue() { }
     public virtual void OnConfirm() { }
     public virtual void OnClickMap() { }
@@ -166,7 +173,11 @@ public class LogIn : UIstate
         manager.CreatingIssueScreen.SetActive(false);
         manager.IdentifyIssueScreen.SetActive(false);
         manager.LogOutButton.SetActive(false);
-        manager.displayLogInStatusText.text = "Please Enter username and password.";
+        manager.displayLogInStatusText.text = "Please enter username and password.";
+
+
+        manager.usernameText.text = "";
+        manager.passwordText.text = "";
     }
     public override void OnAttemptLogIn()
     {
@@ -208,6 +219,52 @@ public class LogIn : UIstate
         manager.aud.clip = manager.fail;
         manager.aud.Play();
         manager.displayLogInStatusText.text = "Could not log in";
+    }
+    public override void OnAttemptSignUp()
+    {
+        bool already_exist = false;
+        foreach (string possible_user in manager.ADMINusers.Keys)
+        {
+            if (manager.usernameText.text.Contains(possible_user))
+            {
+                already_exist = true;
+            }
+        }
+        foreach (string possible_user in manager.users.Keys)
+        {
+            if (manager.usernameText.text.Contains(possible_user))
+            {
+                already_exist = true;
+            }
+        }
+
+        if (already_exist)
+        {
+            manager.aud.clip = manager.fail;
+            manager.aud.Play();
+            manager.displayLogInStatusText.text = "User already exists!";
+            return;
+        }
+
+
+        if (manager.usernameText.text.Length > 3 && manager.passwordText.text.Length > 3)
+        {
+            manager.IsUserAdmin = false;
+            next_state = new FindIssue(manager);
+            manager.UserText.text = "User: " + manager.usernameText.text;
+            manager.users.Add(manager.usernameText.text, manager.passwordText.text);
+            manager.aud.clip = manager.win;
+            manager.aud.Play();
+            return;
+        }
+        else
+        {
+            manager.aud.clip = manager.fail;
+            manager.aud.Play();
+            manager.displayLogInStatusText.text = "Could not sign up, \nUser/Pass too short";
+            return;
+        }
+        
     }
 }
 //the state where the user clicks on a place on the map to create an issue
