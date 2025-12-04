@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TMPro;
-using Unity.VisualScripting.FullSerializer;
-using UnityEditor.U2D;
 using UnityEngine;
 using SFB;
 using UnityEngine.UI;
@@ -20,7 +18,10 @@ public class UIManager : MonoBehaviour
             IssueUI.issuePrefab = Resources.Load<GameObject>("Scenes/IssueUI");
     }
 
-
+    public void CloseProgram()
+    {
+        Application.Quit();
+    }
 
 
     private void Update()
