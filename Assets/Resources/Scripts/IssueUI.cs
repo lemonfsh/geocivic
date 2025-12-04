@@ -35,6 +35,8 @@ public class IssueUI : MonoBehaviour
         {
             GameObject g = Instantiate(issuePrefab);
             IssueUI as_issue = g.GetComponent<IssueUI>();
+            InstantiatedIssues.Add(g);
+
 
             as_issue.issue = IssueDatabase[i];
             RectTransform as_rect = g.GetComponent<RectTransform>();
@@ -46,7 +48,7 @@ public class IssueUI : MonoBehaviour
     }
 
     public static List<GameObject> InstantiatedIssues = new List<GameObject>();
-    public static Issue IssueCurrentlyInCreation = null;
+    public static Issue IssueCurrentlyInCreation = new Issue();
     public static void CreateIssue()
     {
         IssueDatabase.Add(IssueCurrentlyInCreation);
@@ -58,9 +60,9 @@ public class IssueUI : MonoBehaviour
 
 public class Issue
 {
-    public Image image = null;
+    public Sprite sprite = null;
     public Vector2 position = Vector2.zero;
-    public string description = "none";
+    public string description = "";
     public SituationType situationtype = SituationType.LowPriority;
     public enum SituationType
     {
@@ -68,7 +70,4 @@ public class Issue
         MediumPriority,
         HighPriority
     }
-
-
-
 }

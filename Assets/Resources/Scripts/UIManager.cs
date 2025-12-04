@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using TMPro;
 using Unity.VisualScripting.FullSerializer;
 using UnityEditor.U2D;
 using UnityEngine;
-
+using SFB;
+using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
@@ -34,11 +36,15 @@ public class UIManager : MonoBehaviour
         state.OnUpdate();
     }
 
+    public AudioSource aud;
+    public AudioClip win, click, fail;
 
     public GameObject LogInScreen;
     public GameObject CreatingIssueScreen;
     public GameObject IdentifyIssueScreen;
     public GameObject Map;
+    public GameObject LogOutButton;
+    public TextMeshProUGUI UserText;
 
     public TextMeshProUGUI displayLogInStatusText;
     public TextMeshProUGUI usernameText;
@@ -49,10 +55,12 @@ public class UIManager : MonoBehaviour
 
     public TextMeshProUGUI CreateIssueDescription;
     public TMP_Dropdown CreateIssueSituationType;
+    public Image CreateIssueUploadedImage;
 
-    public TextMeshProUGUI FindIssueText;
-    
+    public TextMeshProUGUI IdentifyIssueText;
+    public Image IdentifyIssueImage;
 
+    public GameObject AdminDeleteButton;
     public void OnAttemptLogIn()
     {
         state.OnAttemptLogIn();
@@ -64,16 +72,51 @@ public class UIManager : MonoBehaviour
     }
     public void OnConfirm()
     {
+        aud.clip = click;
+        aud.Play();
         state.OnConfirm();
+        
     }
     public void OnClickMap()
     {
         state.OnClickMap();
     }
+    public void OnLogOut()
+    {
+        aud.clip = click;
+        aud.Play();
+        state.OnLogOut();
+    }
+    public void OnAdminDelete()
+    {
+        state.OnAdminDelete();
+    }
+    public void OnUploadImage()
+    {
+        var extensions = new[] {
+            new ExtensionFilter("PNG Image", "png")
+        };
+
+        string[] paths = StandaloneFileBrowser.OpenFilePanel("Select a PNG", "", extensions, false);
+
+        if (paths.Length > 0)
+        {
+            string filePath = paths[0];
+            Debug.Log("Selected: " + filePath);
+            byte[] data = System.IO.File.ReadAllBytes(filePath);
+            Texture2D tex = new Texture2D(2, 2);
+            tex.LoadImage(data);
+
+            CreateIssueUploadedImage.sprite = Sprite.Create(tex, new Rect(Vector2.zero, new Vector2(tex.width, tex.height)), new Vector2(.5f, .5f));
+        }
+        
+    }
     public static void OnIdentifyIssue(Issue issue)
     {
         UIManager.instance.state.OnIdentifyIssue(issue);
     }
+
+    public bool IsUserAdmin = false;
 
     public Dictionary<string, string> users = new Dictionary<string, string>()
     {
@@ -82,7 +125,7 @@ public class UIManager : MonoBehaviour
 
     public Dictionary<string, string> ADMINusers = new Dictionary<string, string>()
     {
-        ["User1"] = "Passwordr",
+        ["User1"] = "Password1",
     };
 }
 
@@ -101,6 +144,13 @@ public abstract class UIstate
     public virtual void OnCancelCreateIssue() { }
     public virtual void OnConfirm() { }
     public virtual void OnClickMap() { }
+    public virtual void OnAdminDelete() { }
+    public void OnLogOut() 
+    {
+        next_state = new LogIn(manager);
+        IssueUI.IssueCurrentlyInCreation = new Issue();
+        manager.UserText.text = "Not Logged In";
+    }
     public virtual void OnIdentifyIssue(Issue issue) { }
 
 }
@@ -114,23 +164,48 @@ public class LogIn : UIstate
         manager.LogInScreen.SetActive(true);
         manager.CreatingIssueScreen.SetActive(false);
         manager.IdentifyIssueScreen.SetActive(false);
+        manager.LogOutButton.SetActive(false);
+        manager.displayLogInStatusText.text = "Please Enter username and password.";
     }
     public override void OnAttemptLogIn()
     {
-        foreach (string possible_user in manager.users.Keys)
+        foreach (string possible_user in manager.ADMINusers.Keys)
         {
             Debug.Log(possible_user);
             if (manager.usernameText.text.Contains(possible_user))
             {
-                Debug.Log(manager.users[possible_user]);
-                if (manager.passwordText.text.Contains(manager.users[possible_user]))
+                if (manager.passwordText.text.Contains(manager.ADMINusers[possible_user]))
                 {
+                    manager.IsUserAdmin = true;
+
                     next_state = new FindIssue(manager);
-                    manager.displayLogInStatusText.text = "Logging in...";
+                    //manager.displayLogInStatusText.text = "Logging in...";
+                    manager.UserText.text = "[Admin]\nUser: " + possible_user;
+                    manager.aud.clip = manager.win;
+                    manager.aud.Play();
                     return;
                 }
             }
         }
+        foreach (string possible_user in manager.users.Keys)
+        {
+            if (manager.usernameText.text.Contains(possible_user))
+            {
+                if (manager.passwordText.text.Contains(manager.users[possible_user]))
+                {
+                    manager.IsUserAdmin = false;
+
+                    next_state = new FindIssue(manager);
+                    //manager.displayLogInStatusText.text = "Logging in...";
+                    manager.UserText.text = "User: " + possible_user;
+                    manager.aud.clip = manager.win;
+                    manager.aud.Play();
+                    return;
+                }
+            }
+        }
+        manager.aud.clip = manager.fail;
+        manager.aud.Play();
         manager.displayLogInStatusText.text = "Could not log in";
     }
 }
@@ -145,6 +220,7 @@ public class FindIssue : UIstate
         manager.LogInScreen.SetActive(false);
         manager.CreatingIssueScreen.SetActive(false);
         manager.IdentifyIssueScreen.SetActive(false);
+        manager.LogOutButton.SetActive(true);
     }
     public override void OnClickMap()
     {
@@ -175,6 +251,8 @@ public class CreateIssue : UIstate
         manager.LogInScreen.SetActive(false);
         manager.CreatingIssueScreen.SetActive(true);
         manager.IdentifyIssueScreen.SetActive(false);
+
+
     }
     public override void OnUpdate()
     {
@@ -187,6 +265,7 @@ public class CreateIssue : UIstate
     {
         IssueUI.IssueCurrentlyInCreation.description = manager.CreateIssueDescription.text;
         IssueUI.IssueCurrentlyInCreation.situationtype = (Issue.SituationType)manager.CreateIssueSituationType.value;
+        IssueUI.IssueCurrentlyInCreation.sprite = manager.CreateIssueUploadedImage.sprite;
         IssueUI.CreateIssue();
 
         IssueUI.InstantiateIssues();
@@ -200,6 +279,9 @@ public class IdentifyIssue : UIstate
     public Issue issue;
     public IdentifyIssue(UIManager manager, Issue issue) : base(manager)
     {
+
+        manager.AdminDeleteButton.SetActive(manager.IsUserAdmin);
+
         this.issue = issue;
         name = "IdentifyIssue";
 
@@ -208,8 +290,10 @@ public class IdentifyIssue : UIstate
         manager.CreatingIssueScreen.SetActive(false);
         manager.IdentifyIssueScreen.SetActive(true);
 
-        manager.FindIssueText.text = "Longitude: " + issue.position.x.ToString() + "\nLatitude: " + issue.position.y.ToString() + "\n\n" + issue.description + 
+        manager.IdentifyIssueText.text = "Longitude: " + issue.position.x.ToString() + "\nLatitude: " + issue.position.y.ToString() + "\n\n" + issue.description + 
             "\nType: " + issue.situationtype.ToString();
+      
+        manager.IdentifyIssueImage.sprite = issue.sprite;
     }
 
     public override void OnConfirm()
@@ -218,6 +302,15 @@ public class IdentifyIssue : UIstate
     }
     public override void OnClickMap()
     {
+        next_state = new FindIssue(manager);
+    }
+    public override void OnAdminDelete()
+    {
+        int index = IssueUI.IssueDatabase.IndexOf(issue);
+        IssueUI.IssueDatabase.RemoveAt(index);
+        IssueUI.InstantiateIssues();
+        manager.aud.clip = manager.fail;
+        manager.aud.Play();
         next_state = new FindIssue(manager);
     }
 }
