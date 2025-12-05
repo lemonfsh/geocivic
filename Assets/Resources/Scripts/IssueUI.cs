@@ -63,11 +63,11 @@ public class Issue
     public Sprite sprite = null;
     public Vector2 position = Vector2.zero;
     public string description = "";
-    public SituationType situationtype = SituationType.LowPriority;
+    public SituationType situationtype = SituationType.Minor;
     public enum SituationType
     {
-        LowPriority,
-        MediumPriority,
-        HighPriority
+        Urgent,
+        Major,
+        Minor,
     }
 }

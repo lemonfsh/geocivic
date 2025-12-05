@@ -13,7 +13,7 @@ public class UIManager : MonoBehaviour
     void Start()
     {
         instance = this;
-        state = new FindIssue(this);
+        state = new LogIn(this);
         if (IssueUI.issuePrefab == null)
             IssueUI.issuePrefab = Resources.Load<GameObject>("Scenes/IssueUI");
     }
