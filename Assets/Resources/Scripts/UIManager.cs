@@ -120,20 +120,26 @@ public class UIManager : MonoBehaviour
         UIManager.instance.state.OnIdentifyIssue(issue);
     }
 
-    public bool IsUserAdmin = false;
+    public bool IsCurrentUserAdmin = false;
 
-    public Dictionary<string, string> users = new Dictionary<string, string>()
+    public List<User> UserDatabase = new List<User>()
     {
-        ["Guest"] = "Password",
+        new User("Guest", "Password", false),
+        new User("Samuel", "Fish1", true),
     };
+}
 
-    public Dictionary<string, string> ADMINusers = new Dictionary<string, string>()
+public class User
+{
+    public string name;
+    public string password;
+    public bool isAdmin = false;
+    public User(string name, string password, bool isAdmin)
     {
-        ["Samuel"] = "Fish1",
-        ["Brandon"] = "Bour2",
-        ["Owen"] = "Scho3",
-        ["Victor"] = "Figu4",
-    };
+        this.name = name;
+        this.password = password;
+        this.isAdmin = isAdmin;
+    }
 }
 
 public abstract class UIstate
@@ -181,35 +187,18 @@ public class LogIn : UIstate
     }
     public override void OnAttemptLogIn()
     {
-        foreach (string possible_user in manager.ADMINusers.Keys)
+        foreach (User possible_user in manager.UserDatabase)
         {
             Debug.Log(possible_user);
-            if (manager.usernameText.text.Contains(possible_user))
+            if (manager.usernameText.text.Contains(possible_user.name))
             {
-                if (manager.passwordText.text.Contains(manager.ADMINusers[possible_user]))
+                if (manager.passwordText.text.Contains(possible_user.password))
                 {
-                    manager.IsUserAdmin = true;
+                    manager.IsCurrentUserAdmin = possible_user.isAdmin;
 
                     next_state = new FindIssue(manager);
                     //manager.displayLogInStatusText.text = "Logging in...";
-                    manager.UserText.text = "[Admin]\nUser: " + possible_user;
-                    manager.aud.clip = manager.win;
-                    manager.aud.Play();
-                    return;
-                }
-            }
-        }
-        foreach (string possible_user in manager.users.Keys)
-        {
-            if (manager.usernameText.text.Contains(possible_user))
-            {
-                if (manager.passwordText.text.Contains(manager.users[possible_user]))
-                {
-                    manager.IsUserAdmin = false;
-
-                    next_state = new FindIssue(manager);
-                    //manager.displayLogInStatusText.text = "Logging in...";
-                    manager.UserText.text = "User: " + possible_user;
+                    manager.UserText.text = (possible_user.isAdmin ? "[Admin]\nUser: " : "User: ") + possible_user;
                     manager.aud.clip = manager.win;
                     manager.aud.Play();
                     return;
@@ -223,16 +212,9 @@ public class LogIn : UIstate
     public override void OnAttemptSignUp()
     {
         bool already_exist = false;
-        foreach (string possible_user in manager.ADMINusers.Keys)
+        foreach (User possible_user in manager.UserDatabase)
         {
-            if (manager.usernameText.text.Contains(possible_user))
-            {
-                already_exist = true;
-            }
-        }
-        foreach (string possible_user in manager.users.Keys)
-        {
-            if (manager.usernameText.text.Contains(possible_user))
+            if (manager.usernameText.text.Contains(possible_user.name))
             {
                 already_exist = true;
             }
@@ -249,10 +231,10 @@ public class LogIn : UIstate
 
         if (manager.usernameText.text.Length > 3 && manager.passwordText.text.Length > 3)
         {
-            manager.IsUserAdmin = false;
+            manager.IsCurrentUserAdmin = false;
             next_state = new FindIssue(manager);
             manager.UserText.text = "User: " + manager.usernameText.text;
-            manager.users.Add(manager.usernameText.text, manager.passwordText.text);
+            manager.UserDatabase.Add(new User(manager.usernameText.text, manager.passwordText.text, false));
             manager.aud.clip = manager.win;
             manager.aud.Play();
             return;
@@ -323,7 +305,7 @@ public class CreateIssue : UIstate
     {
         IssueUI.IssueCurrentlyInCreation.description = manager.CreateIssueDescription.text;
         IssueUI.IssueCurrentlyInCreation.situationtype = (Issue.SituationType)manager.CreateIssueSituationType.value;
-        IssueUI.IssueCurrentlyInCreation.sprite = manager.CreateIssueUploadedImage.sprite;
+        IssueUI.IssueCurrentlyInCreation.image = manager.CreateIssueUploadedImage.sprite;
         IssueUI.CreateIssue();
 
         IssueUI.InstantiateIssues();
@@ -338,7 +320,7 @@ public class IdentifyIssue : UIstate
     public IdentifyIssue(UIManager manager, Issue issue) : base(manager)
     {
 
-        manager.AdminDeleteButton.SetActive(manager.IsUserAdmin);
+        manager.AdminDeleteButton.SetActive(manager.IsCurrentUserAdmin);
 
         this.issue = issue;
         name = "IdentifyIssue";
@@ -351,7 +333,7 @@ public class IdentifyIssue : UIstate
         manager.IdentifyIssueText.text = "Longitude: " + issue.position.x.ToString() + "\nLatitude: " + issue.position.y.ToString() + "\n\n" + issue.description + 
             "\nType: " + issue.situationtype.ToString();
       
-        manager.IdentifyIssueImage.sprite = issue.sprite;
+        manager.IdentifyIssueImage.sprite = issue.image;
     }
 
     public override void OnConfirm()
@@ -364,8 +346,8 @@ public class IdentifyIssue : UIstate
     }
     public override void OnAdminDelete()
     {
-        int index = IssueUI.IssueDatabase.IndexOf(issue);
-        IssueUI.IssueDatabase.RemoveAt(index);
+        int index = IssueUI.Map.Issues.IndexOf(issue);
+        IssueUI.Map.Issues.RemoveAt(index);
         IssueUI.InstantiateIssues();
         manager.aud.clip = manager.fail;
         manager.aud.Play();

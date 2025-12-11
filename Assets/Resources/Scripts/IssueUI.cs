@@ -8,16 +8,6 @@ public class IssueUI : MonoBehaviour
 {
     public Issue issue;
     public static GameObject issuePrefab;
-    void Start()
-    {
-        
-    }
-
-    void Update()
-    {
-        
-    }
-
     public void OnClick()
     {
         UIManager.OnIdentifyIssue(issue);
@@ -31,14 +21,14 @@ public class IssueUI : MonoBehaviour
         }
         InstantiatedIssues.Clear();
 
-        for (int i = 0; i < IssueDatabase.Count; i++)
+        for (int i = 0; i < Map.Issues.Count; i++)
         {
             GameObject g = Instantiate(issuePrefab);
             IssueUI as_issue = g.GetComponent<IssueUI>();
             InstantiatedIssues.Add(g);
 
 
-            as_issue.issue = IssueDatabase[i];
+            as_issue.issue = Map.Issues[i];
             RectTransform as_rect = g.GetComponent<RectTransform>();
             as_rect.anchoredPosition = as_issue.issue.position;
 
@@ -51,16 +41,23 @@ public class IssueUI : MonoBehaviour
     public static Issue IssueCurrentlyInCreation = new Issue();
     public static void CreateIssue()
     {
-        IssueDatabase.Add(IssueCurrentlyInCreation);
+        Map.Add(IssueCurrentlyInCreation);
     }
+    public static Map Map = new Map();
+}
 
-
-    public static List<Issue> IssueDatabase = new List<Issue>() { };
+public class Map
+{
+    public List<Issue> Issues = new List<Issue>();
+    public void Add(Issue issue)
+    {
+        Issues.Add(issue);
+    }
 }
 
 public class Issue
 {
-    public Sprite sprite = null;
+    public Sprite image = null;
     public Vector2 position = Vector2.zero;
     public string description = "";
     public SituationType situationtype = SituationType.Minor;
